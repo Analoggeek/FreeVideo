@@ -3,6 +3,8 @@ name: Offline Installers
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
 
@@ -87,3 +89,27 @@ jobs:
         with:
           name: FreeVideo-Linux-x86_64
           path: build/offline/linux-x86_64/release/FreeVideo-Linux-x86_64.AppImage
+
+  publish-release:
+    name: Publish Direct Download Release
+    needs: [windows-x86_64, macos-arm64, macos-x86_64, linux-x86_64]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+      - name: Publish GitHub Release with Direct Downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ github.ref_type == 'tag' && github.ref_name || 'latest-offline' }}"
+          gh release delete "$TAG" --yes 2>/dev/null || true
+          gh release create "$TAG" \
+            release-assets/FreeVideo-Windows-x86_64/FreeVideo.exe \
+            release-assets/FreeVideo-Mac-arm64/FreeVideo-Mac-arm64.dmg \
+            release-assets/FreeVideo-Mac-x86_64/FreeVideo-Mac-x86_64.dmg \
+            release-assets/FreeVideo-Linux-x86_64/FreeVideo-Linux-x86_64.AppImage \
+            --title "FreeVideo Offline Installers ($TAG)" \
+            --notes "Direct offline installers for Windows (Intel/AMD x86_64), macOS (Apple Silicon arm64 & Intel x86_64), and Linux (Intel/AMD x86_64)."
