@@ -100,9 +100,10 @@ jobs:
       - name: Publish GitHub Release with Direct Downloads
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           TAG="${{ github.ref_type == 'tag' && github.ref_name || 'latest-offline' }}"
-          gh release delete "$TAG" --yes 2>/dev/null || true
+          gh release delete "$TAG" -R "$GH_REPO" --yes 2>/dev/null || true
           FILES=()
           for f in \
             release-assets/FreeVideo-Windows-x86_64/FreeVideo.exe \
@@ -113,6 +114,6 @@ jobs:
               FILES+=("$f")
             fi
           done
-          gh release create "$TAG" "${FILES[@]}" \
+          gh release create "$TAG" "${FILES[@]}" -R "$GH_REPO" \
             --title "FreeVideo Offline Installers ($TAG)" \
             --notes "Direct offline installers for Windows (Intel/AMD x86_64), macOS (Apple Silicon arm64 & Intel x86_64), and Linux (Intel/AMD x86_64)."
