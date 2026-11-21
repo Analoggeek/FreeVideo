@@ -315,7 +315,7 @@ def build_identity(value):
             or not isinstance(value.get('version'), str) or len(value['version']) > 64):
         raise ValueError('Invalid launcher build identity')
     if value['channel'] == MAC_CHANNEL:
-        if value.get('target') != 'macos-arm64' or value.get('packaging') != 'app':
+        if value.get('target') not in ('macos-arm64', 'macos-x86_64') or value.get('packaging') != 'app':
             raise ValueError('Invalid Mac launcher build identity')
     elif value['channel'] == LINUX_CHANNEL:
         if value.get('target') != 'linux-x86_64' or value.get('packaging') != 'appimage':
@@ -330,7 +330,7 @@ def build_identity(value):
     if value.get('packaging') == 'onedir':
         result['packaging'] = 'onedir'
     if value['channel'] == MAC_CHANNEL:
-        result.update(target='macos-arm64', packaging='app')
+        result.update(target=value.get('target', 'macos-arm64'), packaging='app')
     if value['channel'] == LINUX_CHANNEL:
         result.update(target='linux-x86_64', packaging='appimage')
     from .release_notes import optional_fields
